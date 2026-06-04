@@ -271,7 +271,7 @@ async function startSearch(){
 
   const scope = getScopeFlags();
   const medios = MEDIOS.filter(m=>selected.has(m.domain));
-  const LOTE = 18;
+  const LOTE = 12;
   const lotes = [];
   for(let i=0; i<medios.length; i+=LOTE) lotes.push(medios.slice(i,i+LOTE));
 
