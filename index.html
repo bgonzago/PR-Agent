@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agente de Clipping — NTT DATA Perú</title>
+  <title>Agente PR - NTT DATA Perú</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
@@ -19,9 +19,10 @@
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
     .container { max-width: 960px; margin: 0 auto; }
-    header { margin-bottom: 2rem; }
-    header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
-    header p { font-size: 13px; color: var(--text-sec); }
+    header { margin-bottom: 2rem; display: flex; align-items: center; gap: 16px; }
+    header img { height: 36px; width: auto; }
+    header div h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
+    header div p { font-size: 13px; color: var(--text-sec); }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.5rem; margin-bottom: 1rem; }
     .field-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-sec); margin-bottom: 8px; }
     textarea { width: 100%; min-height: 80px; resize: vertical; font-size: 14px; font-family: 'DM Sans', sans-serif; border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 12px; color: var(--text); background: var(--bg); transition: border-color .15s; }
@@ -85,8 +86,10 @@
 <body>
 <div class="container">
   <header>
-    <h1>Agente de Clipping — NTT DATA Perú</h1>
-    <p>Busca notas de prensa en web y redes sociales (vía Google) · <strong>39 medios</strong></p>
+    <div>
+      <h1>Agente PR — NTT DATA Perú</h1>
+      <p>Busca notas de prensa en web y redes sociales (vía Google) · <strong>18 medios prioritarios</strong></p>
+    </div>
   </header>
 
   <div class="card">
@@ -115,7 +118,7 @@
 
   <div class="media-panel" id="media-panel">
     <div class="media-panel-hdr">
-      <span id="media-count">39 medios seleccionados</span>
+      <span id="media-count">18 medios seleccionados</span>
       <div style="display:flex;gap:8px;">
         <button class="btn-xs" onclick="selectAll()">Todos</button>
         <button class="btn-xs" onclick="selectNone()">Ninguno</button>
@@ -131,46 +134,24 @@
 
 <script>
 const MEDIOS = [
-  // LOTE 1 — Prioritarios
-  {name:"América Sistemas",     domain:"americasistemas.pe",          tier:3, value:1200, reach:50000},
-  {name:"Business Empresarial", domain:"businessempresarial.com.pe",  tier:1, value:2400, reach:80000},
-  {name:"Channel News Perú",    domain:"channelnewsperu.com",         tier:2, value:2200, reach:60000},
-  {name:"Ciudad.pe",            domain:"ciudad.pe",                   tier:3, value:1200, reach:10000},
-  {name:"Common Digital",       domain:"commondigital.pe",            tier:3, value:1200, reach:10000},
-  {name:"Comunicación A1",      domain:"comunicaciona1.com",          tier:3, value:600,  reach:8000},
-  {name:"Comunidaria",          domain:"comunidaria.com",             tier:2, value:600,  reach:8000},
-  {name:"CSTIC",                domain:"blog.cstictv.com",            tier:3, value:1200, reach:15000},
-  {name:"CTO Perú",             domain:"ctoperu.com",                 tier:1, value:3500, reach:75000},
-  {name:"Diario Gestión",       domain:"gestion.pe",                  tier:1, value:5310, reach:66000},
-  {name:"Ecos Digitales",       domain:"ecosdigitales.pe",            tier:2, value:1000, reach:10000},
-  {name:"Enterados.pe",         domain:"enterados.pe",                tier:2, value:1000, reach:20000},
-  {name:"Expreso",              domain:"expreso.com.pe",              tier:1, value:3500, reach:80000},
-  {name:"JC Magazine",          domain:"jcmagazine.com",              tier:3, value:1800, reach:5000},
-  {name:"Minería y Energía",    domain:"mineriaenergia.com",          tier:1, value:6000, reach:120000},
-  {name:"Press Perú",           domain:"pressperu.com",               tier:2, value:1000, reach:15000},
-  {name:"Revista Economía",     domain:"revistaeconomia.com",         tier:2, value:1500, reach:20000},
-  {name:"Tecnología 21",        domain:"tecnologia21.pe",             tier:1, value:2200, reach:75000},
-  // LOTE 2
-  {name:"Agencia Andina",       domain:"andina.pe",                   tier:1, value:3500, reach:90000},
-  {name:"Agencia Órbita",       domain:"agenciaorbita.com",           tier:3, value:1000, reach:20000},
-  {name:"América Economía",     domain:"americaeconomia.com",         tier:1, value:5000, reach:180000},
-  {name:"C-Empresarial",        domain:"ccreativa.com",               tier:2, value:2200, reach:60000},
-  {name:"Canal TI",             domain:"canalti.pe",                  tier:1, value:3500, reach:30500},
-  {name:"Diario Correo",        domain:"diariocorreo.pe",             tier:1, value:4000, reach:120000},
-  {name:"Forbes Perú",          domain:"forbes.pe",                   tier:1, value:6500, reach:250000},
-  {name:"Infobae Perú",         domain:"infobae.com",                 tier:1, value:5000, reach:200000},
-  {name:"Informe Actual",       domain:"informeactual.com",           tier:3, value:800,  reach:8000},
-  {name:"IT/Users",             domain:"itusers.com",                 tier:2, value:1800, reach:5000},
-  {name:"Logística 360",        domain:"logistica360.pe",             tier:2, value:1200, reach:30000},
-  {name:"Nteve",                domain:"nteve.pe",                    tier:3, value:1000, reach:20000},
-  {name:"Perú Retail",          domain:"peru-retail.com",             tier:2, value:1200, reach:25000},
-  {name:"Revista Proactivo",    domain:"proactivo.com.pe",            tier:2, value:1500, reach:20000},
-  {name:"RPP",                  domain:"rpp.pe",                      tier:1, value:3500, reach:90000},
-  {name:"Rumbo Económico",      domain:"rumbeconomico.pe",            tier:3, value:900,  reach:1000},
-  {name:"Rumbo Minero",         domain:"rumbominero.com",             tier:1, value:4500, reach:110000},
-  {name:"Semana Económica",     domain:"semanaeconomica.com",         tier:1, value:3500, reach:145000},
-  {name:"Stakeholders",         domain:"stakeholders.com.pe",         tier:1, value:3500, reach:90000},
-  {name:"Zoom Empresarial",     domain:"zoomempresarial.pe",          tier:2, value:1800, reach:60000},
+  {name:"América Sistemas",     domain:"americasistemas.pe",         tier:3, value:1200, reach:50000},
+  {name:"Business Empresarial", domain:"businessempresarial.com.pe", tier:1, value:2400, reach:80000},
+  {name:"Channel News Perú",    domain:"channelnewsperu.com",        tier:2, value:2200, reach:60000},
+  {name:"Ciudad.pe",            domain:"ciudad.pe",                  tier:3, value:1200, reach:10000},
+  {name:"Common Digital",       domain:"commondigital.pe",           tier:3, value:1200, reach:10000},
+  {name:"Comunicación A1",      domain:"comunicaciona1.com",         tier:3, value:600,  reach:8000},
+  {name:"Comunidaria",          domain:"comunidaria.com",            tier:2, value:600,  reach:8000},
+  {name:"CSTIC",                domain:"blog.cstictv.com",           tier:3, value:1200, reach:15000},
+  {name:"CTO Perú",             domain:"ctoperu.com",                tier:1, value:3500, reach:75000},
+  {name:"Diario Gestión",       domain:"gestion.pe",                 tier:1, value:5310, reach:66000},
+  {name:"Ecos Digitales",       domain:"ecosdigitales.pe",           tier:2, value:1000, reach:10000},
+  {name:"Enterados.pe",         domain:"enterados.pe",               tier:2, value:1000, reach:20000},
+  {name:"Expreso",              domain:"expreso.com.pe",             tier:1, value:3500, reach:80000},
+  {name:"JC Magazine",          domain:"jcmagazine.com",             tier:3, value:1800, reach:5000},
+  {name:"Minería y Energía",    domain:"mineriaenergia.com",         tier:1, value:6000, reach:120000},
+  {name:"Press Perú",           domain:"pressperu.com",              tier:2, value:1000, reach:15000},
+  {name:"Revista Economía",     domain:"revistaeconomia.com",        tier:2, value:1500, reach:20000},
+  {name:"Tecnología 21",        domain:"tecnologia21.pe",            tier:1, value:2200, reach:75000},
 ];
 
 const MEDIO_REF = {};
@@ -214,17 +195,17 @@ function getScopeFlags(){
   };
 }
 
-function buildPrompt(lote, query, scope){
+function buildPrompt(medios, query, scope){
   const sociales = [
-    scope.x  && {label:'X',         site:'x.com'},
-    scope.li && {label:'LinkedIn',  site:'linkedin.com'},
-    scope.fb && {label:'Facebook',  site:'facebook.com'},
-    scope.ig && {label:'Instagram', site:'instagram.com'},
-    scope.yt && {label:'YouTube',   site:'youtube.com'}
+    scope.x  && {label:'X',        site:'x.com'},
+    scope.li && {label:'LinkedIn', site:'linkedin.com'},
+    scope.fb && {label:'Facebook', site:'facebook.com'},
+    scope.ig && {label:'Instagram',site:'instagram.com'},
+    scope.yt && {label:'YouTube',  site:'youtube.com'}
   ].filter(Boolean);
 
-  const mediosList = lote.map(m=>`- ${m.name} (${m.domain})`).join('\n');
-  const socialInstr = sociales.length ? `\nAdemás busca en redes vía Google:\n${sociales.map(s=>`- ${s.label}: "[nombre del medio]" [keywords] site:${s.site}`).join('\n')}` : '';
+  const mediosList = medios.map(m=>`- ${m.name} (${m.domain})`).join('\n');
+  const socialInstr = sociales.length ? `\nAdemás busca publicaciones en redes sociales vía Google:\n${sociales.map(s=>`- ${s.label}: "[nombre del medio]" [keywords] site:${s.site}`).join('\n')}` : '';
 
   return `Eres un asistente especializado en clipping de medios peruanos. Busca notas de prensa publicadas sobre este tema:
 
@@ -232,10 +213,10 @@ TEMA: "${query}"
 
 MEDIOS A REVISAR:
 ${mediosList}
-${scope.web ? `\nBÚSQUEDA WEB: Por cada medio usa múltiples queries variando keywords:\n- site:[dominio] [palabras clave principales]\n- site:[dominio] [nombre empresa o evento]` : ''}
+${scope.web ? `\nBÚSQUEDA WEB: Por cada medio usa múltiples queries para capturar títulos propios distintos al oficial:\n- site:[dominio] [palabras clave principales]\n- site:[dominio] [nombre empresa o evento]\n- site:[dominio] [keywords alternativos]` : ''}
 ${socialInstr}
 
-Responde SOLO con JSON válido, sin texto ni backticks:
+Responde SOLO con JSON válido, sin texto ni backticks adicionales:
 [
   {
     "medio": "Nombre del medio",
@@ -254,8 +235,10 @@ Responde SOLO con JSON válido, sin texto ni backticks:
 
 Reglas:
 - Un objeto por cada medio de la lista
-- Si no encontraste nada, un hallazgo con encontrado:false
-- Solo marca encontrado:true si confirmas con URL real`;
+- En hallazgos, una entrada por cada fuente donde encontraste algo
+- Si no encontraste nada, un solo hallazgo con encontrado:false
+- Solo marca encontrado:true si puedes confirmar con URL real
+- Sé honesto: si no puedes confirmar, marca encontrado:false`;
 }
 
 async function startSearch(){
@@ -271,31 +254,27 @@ async function startSearch(){
 
   const scope = getScopeFlags();
   const medios = MEDIOS.filter(m=>selected.has(m.domain));
-  const LOTE = 12;
-  const lotes = [];
-  for(let i=0; i<medios.length; i+=LOTE) lotes.push(medios.slice(i,i+LOTE));
 
-  let allResults = [];
+  setStatus(`<span class="prog"><span class="spinner"></span> Consultando ${medios.length} medios...</span>`);
 
-  for(let i=0; i<lotes.length; i++){
-    setStatus(`<span class="prog"><span class="spinner"></span> Consultando lote ${i+1} de ${lotes.length} (${lotes[i].length} medios)...</span>`);
-    try {
-      const resp = await fetch('/api/search', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({prompt: buildPrompt(lotes[i], query, scope)})
-      });
-      const data = await resp.json();
-      const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-      const clean = text.replace(/```json|```/g,'').trim();
-      const match = clean.match(/\[[\s\S]*\]/);
-      if(match) allResults = allResults.concat(JSON.parse(match[0]));
-    } catch(e) {
-      setStatus('Error en lote '+(i+1)+': '+e.message);
-    }
+  try {
+    const resp = await fetch('/api/search', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt: buildPrompt(medios, query, scope)})
+    });
+    const data = await resp.json();
+    const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const clean = text.replace(/```json|```/g,'').trim();
+    const match = clean.match(/\[[\s\S]*\]/);
+    if(match) results = JSON.parse(match[0]);
+  } catch(e) {
+    setStatus('Error de conexión: ' + e.message);
+    running=false;
+    document.getElementById('btn-search').disabled=false;
+    return;
   }
 
-  results = allResults;
   renderResults(query);
   running=false;
   document.getElementById('btn-search').disabled=false;
@@ -311,13 +290,12 @@ function renderResults(query){
 
   setStatus(`Búsqueda completada — <strong>${allFound.length}</strong> notas encontradas en <strong>${results.length}</strong> medios consultados.`);
 
-  // Caja de confirmación para generar reporte
   if(allFound.length > 0){
     document.getElementById('confirm-area').innerHTML = `
       <div class="confirm-box">
         <div>
           <p>¿Generar reporte de prensa?</p>
-          <span>Se creará un Excel con ${allFound.length} nota(s) encontrada(s) listas para tu reporte mensual.</span>
+          <span>Se creará un Excel con ${allFound.length} nota(s) lista(s) para tu reporte mensual.</span>
         </div>
         <button class="btn-green" onclick="generarReporte()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -343,9 +321,10 @@ function renderResults(query){
       <th style="width:12%">Fecha</th>
     </tr></thead><tbody>`;
     allFound.forEach(h=>{
+      const fuenteLabel = h.fuente==='web' ? 'Web' : h.fuente.charAt(0).toUpperCase()+h.fuente.slice(1);
       html+=`<tr class="found">
         <td style="font-weight:500;">${h.medio}</td>
-        <td><span class="src-tag">${h.fuente==='web'?'Web':h.fuente.charAt(0).toUpperCase()+h.fuente.slice(1)}</span></td>
+        <td><span class="src-tag">${fuenteLabel}</span></td>
         <td style="color:#6b6860;">${h.titulo||'—'}</td>
         <td>${h.url?`<a href="${h.url}" target="_blank" rel="noopener">↗ Ver</a>`:'—'}</td>
         <td style="color:#9c9a95;white-space:nowrap;">${h.fecha||'—'}</td>
@@ -381,12 +360,8 @@ function generarReporte(){
     });
   });
 
-  const ref = (medio, dominio) => {
-    return MEDIO_REF[medio] || MEDIO_REF[dominio] || {tier:'', value:'', reach:''};
-  };
-
   const rows = allFound.map(h => {
-    const info = ref(h.medio, h.dominio);
+    const info = MEDIO_REF[h.medio] || MEDIO_REF[h.dominio] || {tier:'', value:'', reach:''};
     const fecha = parseFecha(h.fecha);
     return {
       'Scope':   '',
@@ -411,10 +386,8 @@ function generarReporte(){
     header: ['Scope','Country','Date','Format','Media','Title','Link','Unique/Include others/Repost','Tier','Value (ROI)','Reach','Theme','Subtheme','Reference']
   });
 
-  // Formato de fecha en columna Date
-  const dateCol = 'C';
   rows.forEach((r, i) => {
-    const cellRef = dateCol + (i+2);
+    const cellRef = 'C' + (i+2);
     if(ws[cellRef] && r['Date'] instanceof Date){
       ws[cellRef].t = 'd';
       ws[cellRef].v = r['Date'];
@@ -422,7 +395,6 @@ function generarReporte(){
     }
   });
 
-  // Ancho de columnas
   ws['!cols'] = [
     {wch:8},{wch:8},{wch:12},{wch:8},{wch:22},{wch:50},{wch:40},
     {wch:10},{wch:6},{wch:12},{wch:12},{wch:14},{wch:14},{wch:14}
@@ -432,7 +404,6 @@ function generarReporte(){
   const mes = new Date().toLocaleString('es-PE',{month:'long',year:'numeric'}).replace(' de ',' ');
   XLSX.writeFile(wb, `Reporte_NP_${mes}.xlsx`);
 
-  // Confirmación visual
   document.getElementById('confirm-area').innerHTML = `
     <div class="confirm-box">
       <div>
