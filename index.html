@@ -15,14 +15,15 @@
       --green-bg: #eaf5ee; --green-text: #1a5c30;
       --blue-bg: #e8f0fb; --blue-text: #1a3a6b;
       --gray-bg: #f1f0ec; --gray-text: #5a5850;
+      --amber-bg: #fdf4e3; --amber-text: #6b4a10;
       --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
     .container { max-width: 960px; margin: 0 auto; }
-    header { margin-bottom: 2rem; } header img { height: 36px; width: auto; display: block; margin-bottom: 10px; }
-    header img { height: 36px; width: auto; }
-    header div h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
-    header div p { font-size: 13px; color: var(--text-sec); }
+    header { margin-bottom: 2rem; }
+    header img { height: 36px; width: auto; display: block; margin-bottom: 10px; }
+    header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
+    header p { font-size: 13px; color: var(--text-sec); }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.5rem; margin-bottom: 1rem; }
     .field-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-sec); margin-bottom: 8px; }
     textarea { width: 100%; min-height: 80px; resize: vertical; font-size: 14px; font-family: 'DM Sans', sans-serif; border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 12px; color: var(--text); background: var(--bg); transition: border-color .15s; }
@@ -61,6 +62,10 @@
     .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
     .b-web { background: var(--green-bg); color: var(--green-text); }
     .b-miss { background: var(--gray-bg); color: var(--gray-text); }
+    .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .filter-bar label { font-size: 13px; color: var(--text-sec); font-weight: 500; }
+    .filter-bar select { font-size: 13px; font-family: 'DM Sans', sans-serif; border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 6px 10px; background: var(--surface); color: var(--text); cursor: pointer; }
+    .filter-bar select:focus { outline: none; border-color: var(--border-strong); }
     .table-wrap { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 1rem; }
     table { width: 100%; border-collapse: collapse; }
     thead { background: var(--bg); }
@@ -86,11 +91,9 @@
 <body>
 <div class="container">
   <header>
-    <div>
-      <img src="/logo.png" alt="NTT DATA Perú">
-      <h1>Agente PR — NTT DATA Perú</h1>
-      <p>Busca notas de prensa en web y redes sociales (vía Google) · <strong>18 medios prioritarios</strong></p>
-    </div>
+    <img src="/logo.png" alt="NTT DATA Perú">
+    <h1>Agente PR — NTT DATA Perú</h1>
+    <p>Busca notas de prensa en web y redes sociales (vía Google) · <strong>18 medios prioritarios</strong></p>
   </header>
 
   <div class="card">
@@ -162,6 +165,7 @@ MEDIOS.forEach(m => { MEDIO_REF[m.name] = m; MEDIO_REF[m.domain] = m; });
 let selected = new Set(MEDIOS.map(m=>m.domain));
 let results = [];
 let running = false;
+window._allFound = [];
 
 function buildGrid(){
   document.getElementById('media-grid').innerHTML = MEDIOS.map(m=>`
@@ -184,6 +188,7 @@ function clearAll(){
   document.getElementById('results-area').innerHTML='';
   document.getElementById('confirm-area').innerHTML='';
   results=[];
+  window._allFound=[];
 }
 
 function getScopeFlags(){
@@ -198,16 +203,20 @@ function getScopeFlags(){
   };
 }
 
-function extractKeyword(query){
+function extractKeywords(query){
   const q = query.toLowerCase();
-  if(q.includes('summit')) return 'summit';
-  if(q.includes('blockchain') || q.includes('darshana')) return 'darshana';
-  if(q.includes('talent') || q.includes('trujillo')) return 'talent';
-  return 'ntt';
+  const keywords = ['ntt'];
+  if(q.includes('summit') || q.includes('digital')) keywords.push('summit');
+  if(q.includes('darshana') || q.includes('blockchain') || q.includes('credencial')){
+    keywords.push('darshana');
+    keywords.push('credenciales');
+  }
+  if(q.includes('talent') || q.includes('trujillo')) keywords.push('talent');
+  return keywords;
 }
 
 function buildPrompt(medios, query, scope){
-  const keyword = extractKeyword(query);
+  const keywords = extractKeywords(query);
   const sociales = [
     scope.x  && {label:'X',        site:'x.com'},
     scope.li && {label:'LinkedIn', site:'linkedin.com'},
@@ -217,20 +226,21 @@ function buildPrompt(medios, query, scope){
   ].filter(Boolean);
 
   const mediosList = medios.map(m => {
-    const searchUrl = scope.web ? m.searchUrl.replace(/{keyword}/g, keyword) : null;
-    return `- ${m.name} (${m.domain})${searchUrl ? ` → búsqueda directa: ${searchUrl}` : ''}`;
+    const searchUrls = scope.web ? keywords.map(k => m.searchUrl.replace(/{keyword}/g, k)) : [];
+    const urlsText = searchUrls.length ? ` → búsquedas directas: ${searchUrls.join(' | ')}` : '';
+    return `- ${m.name} (${m.domain})${urlsText}`;
   }).join('\n');
 
-  const googleInstr = scope.google ? `\nBÚSQUEDA EN GOOGLE: Para cada medio usa:\n- site:[dominio] [palabras clave principales]\n- site:[dominio] [nombre empresa o evento]\n- site:[dominio] [keywords alternativos]` : '';
+  const googleInstr = scope.google ? `\nBÚSQUEDA EN GOOGLE: Para cada medio usa múltiples queries:\n- site:[dominio] [palabras clave principales]\n- site:[dominio] [nombre empresa o evento]\n- site:[dominio] [keywords alternativos]` : '';
 
-  const socialInstr = sociales.length ? `\nBÚSQUEDA EN REDES SOCIALES vía Google:\n${sociales.map(s=>`- ${s.label}: "[nombre del medio]" "${keyword}" site:${s.site}`).join('\n')}` : '';
+  const socialInstr = sociales.length ? `\nBÚSQUEDA EN REDES SOCIALES vía Google:\n${sociales.map(s=>`- ${s.label}: "[nombre del medio]" "${keywords[0]}" site:${s.site}`).join('\n')}` : '';
 
-  const webInstr = scope.web ? `\nBÚSQUEDA DIRECTA EN WEB: Accede a las URLs de búsqueda directa indicadas para cada medio y revisa los resultados. Busca notas publicadas sobre el tema en el período reciente.` : '';
+  const webInstr = scope.web ? `\nBÚSQUEDA DIRECTA EN WEB: Accede a las URLs de búsqueda indicadas para cada medio y revisa los resultados. Busca notas publicadas sobre el tema.` : '';
 
   return `Eres un asistente especializado en clipping de medios peruanos. Busca notas de prensa publicadas sobre este tema:
 
 TEMA: "${query}"
-KEYWORD DE BÚSQUEDA: "${keyword}"
+KEYWORDS: ${keywords.map(k=>`"${k}"`).join(', ')}
 
 MEDIOS A REVISAR:
 ${mediosList}
@@ -277,7 +287,7 @@ async function startSearch(){
   const scope = getScopeFlags();
   const medios = MEDIOS.filter(m=>selected.has(m.domain));
 
-  setStatus(`<span class="prog"><span class="spinner"></span> Consultando ${medios.length} medios (web directa + Google + redes)...</span>`);
+  setStatus(`<span class="prog"><span class="spinner"></span> Consultando ${medios.length} medios...</span>`);
 
   try {
     const resp = await fetch('/api/search', {
@@ -310,6 +320,8 @@ function renderResults(query){
     else notFound.push(r);
   });
 
+  window._allFound = allFound;
+
   setStatus(`Búsqueda completada — <strong>${allFound.length}</strong> notas encontradas en <strong>${results.length}</strong> medios consultados.`);
 
   if(allFound.length > 0){
@@ -317,7 +329,7 @@ function renderResults(query){
       <div class="confirm-box">
         <div>
           <p>¿Generar reporte de prensa?</p>
-          <span>Se creará un Excel con ${allFound.length} nota(s) lista(s) para tu reporte mensual.</span>
+          <span>Se creará un Excel con las notas del período seleccionado.</span>
         </div>
         <button class="btn-green" onclick="generarReporte()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -326,43 +338,107 @@ function renderResults(query){
       </div>`;
   }
 
-  let html=`<div class="results-hdr">
+  // Extraer meses disponibles
+  const meses = {};
+  allFound.forEach(h => {
+    if(h.fecha){
+      const parts = h.fecha.split('/');
+      if(parts.length===3){
+        const key = `${parts[2]}-${parts[1].padStart(2,'0')}`;
+        const label = new Date(parseInt(parts[2]), parseInt(parts[1])-1, 1)
+          .toLocaleString('es-PE', {month:'long', year:'numeric'});
+        meses[key] = label.charAt(0).toUpperCase() + label.slice(1);
+      }
+    }
+  });
+
+  const mesesOrdenados = Object.keys(meses).sort().reverse();
+
+  let html = `<div class="results-hdr">
     <h2>${query.length>70?query.substring(0,70)+'…':query}</h2>
     <div class="badges">
-      <span class="badge b-web"><span class="dot dot-web"></span>${allFound.length} encontradas</span>
+      <span class="badge b-web" id="badge-encontradas"><span class="dot dot-web"></span>${allFound.length} encontradas</span>
       <span class="badge b-miss"><span class="dot dot-miss"></span>${notFound.length} sin nota</span>
     </div>
   </div>`;
 
-  if(allFound.length){
-    html+=`<div class="table-wrap"><table><thead><tr>
-      <th style="width:18%">Medio</th>
-      <th style="width:10%">Fuente</th>
-      <th style="width:36%">Título</th>
-      <th style="width:24%">URL</th>
-      <th style="width:12%">Fecha</th>
-    </tr></thead><tbody>`;
-    allFound.forEach(h=>{
-      const isWeb = h.fuente==='web';
-      const fuenteLabel = isWeb ? 'Web' : h.fuente.charAt(0).toUpperCase()+h.fuente.slice(1);
-      html+=`<tr class="found">
-        <td style="font-weight:500;">${h.medio}</td>
-        <td><span class="src-tag${isWeb?'':' social'}">${fuenteLabel}</span></td>
-        <td style="color:#6b6860;">${h.titulo||'—'}</td>
-        <td>${h.url?`<a href="${h.url}" target="_blank" rel="noopener">↗ Ver</a>`:'—'}</td>
-        <td style="color:#9c9a95;white-space:nowrap;">${h.fecha||'—'}</td>
-      </tr>`;
-    });
-    html+=`</tbody></table></div>`;
+  if(mesesOrdenados.length > 0){
+    html += `<div class="filter-bar">
+      <label>Filtrar por mes:</label>
+      <select id="filtro-mes" onchange="filtrarPorMes()">
+        <option value="">Todos los meses (${allFound.length})</option>
+        ${mesesOrdenados.map(k=>`<option value="${k}">${meses[k]}</option>`).join('')}
+        <option value="sin-fecha">Sin fecha detectada</option>
+      </select>
+    </div>`;
   }
 
+  html += `<div id="tabla-resultados"></div>`;
+
   if(notFound.length){
-    html+=`<div class="missing-section"><h3>Sin nota encontrada en:</h3>
+    html += `<div class="missing-section"><h3>Sin nota encontrada en:</h3>
       <div class="missing-tags">${notFound.map(r=>`<span class="missing-tag">${r.medio}</span>`).join('')}</div>
     </div>`;
   }
 
-  document.getElementById('results-area').innerHTML=html;
+  document.getElementById('results-area').innerHTML = html;
+  renderTabla(allFound);
+}
+
+function filtrarPorMes(){
+  const filtro = document.getElementById('filtro-mes').value;
+  const allFound = window._allFound || [];
+
+  let filtradas;
+  if(!filtro){
+    filtradas = allFound;
+  } else if(filtro==='sin-fecha'){
+    filtradas = allFound.filter(h=>!h.fecha);
+  } else {
+    filtradas = allFound.filter(h=>{
+      if(!h.fecha) return false;
+      const parts = h.fecha.split('/');
+      if(parts.length!==3) return false;
+      const key = `${parts[2]}-${parts[1].padStart(2,'0')}`;
+      return key===filtro;
+    });
+  }
+
+  const badge = document.getElementById('badge-encontradas');
+  if(badge) badge.innerHTML = `<span class="dot dot-web"></span>${filtradas.length} ${filtro?'filtradas':'encontradas'}`;
+
+  renderTabla(filtradas);
+}
+
+function renderTabla(notas){
+  if(!notas.length){
+    document.getElementById('tabla-resultados').innerHTML =
+      `<p style="font-size:13px;color:var(--text-sec);padding:1rem 0;">No hay notas para el período seleccionado.</p>`;
+    return;
+  }
+
+  let html = `<div class="table-wrap"><table><thead><tr>
+    <th style="width:18%">Medio</th>
+    <th style="width:10%">Fuente</th>
+    <th style="width:36%">Título</th>
+    <th style="width:24%">URL</th>
+    <th style="width:12%">Fecha</th>
+  </tr></thead><tbody>`;
+
+  notas.forEach(h=>{
+    const isWeb = h.fuente==='web';
+    const fuenteLabel = isWeb ? 'Web' : h.fuente.charAt(0).toUpperCase()+h.fuente.slice(1);
+    html+=`<tr class="found">
+      <td style="font-weight:500;">${h.medio}</td>
+      <td><span class="src-tag${isWeb?'':' social'}">${fuenteLabel}</span></td>
+      <td style="color:#6b6860;">${h.titulo||'—'}</td>
+      <td>${h.url?`<a href="${h.url}" target="_blank" rel="noopener">↗ Ver</a>`:'—'}</td>
+      <td style="color:#9c9a95;white-space:nowrap;">${h.fecha||'—'}</td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div>`;
+  document.getElementById('tabla-resultados').innerHTML = html;
 }
 
 function parseFecha(fechaStr){
@@ -375,15 +451,25 @@ function parseFecha(fechaStr){
   return null;
 }
 
-function generarReporte(){
-  const allFound=[];
-  results.forEach(r=>{
-    (r.hallazgos||[]).filter(h=>h.encontrado).forEach(h=>{
-      allFound.push({medio:r.medio, dominio:r.dominio, ...h});
-    });
+function getNotasAExportar(){
+  const allFound = window._allFound || [];
+  const select = document.getElementById('filtro-mes');
+  const filtro = select ? select.value : '';
+  if(!filtro) return allFound;
+  if(filtro==='sin-fecha') return allFound.filter(h=>!h.fecha);
+  return allFound.filter(h=>{
+    if(!h.fecha) return false;
+    const parts = h.fecha.split('/');
+    if(parts.length!==3) return false;
+    const key = `${parts[2]}-${parts[1].padStart(2,'0')}`;
+    return key===filtro;
   });
+}
 
-  const rows = allFound.map(h => {
+function generarReporte(){
+  const notas = getNotasAExportar();
+
+  const rows = notas.map(h => {
     const info = MEDIO_REF[h.medio] || MEDIO_REF[h.dominio] || {tier:'', value:'', reach:''};
     const fecha = parseFecha(h.fecha);
     return {
@@ -409,12 +495,12 @@ function generarReporte(){
     header: ['Scope','Country','Date','Format','Media','Title','Link','Unique/Include others/Repost','Tier','Value (ROI)','Reach','Theme','Subtheme','Reference']
   });
 
-  rows.forEach((r, i) => {
-    const cellRef = 'C' + (i+2);
+  rows.forEach((r,i)=>{
+    const cellRef = 'C'+(i+2);
     if(ws[cellRef] && r['Date'] instanceof Date){
-      ws[cellRef].t = 'd';
-      ws[cellRef].v = r['Date'];
-      ws[cellRef].z = 'DD/MM/YYYY';
+      ws[cellRef].t='d';
+      ws[cellRef].v=r['Date'];
+      ws[cellRef].z='DD/MM/YYYY';
     }
   });
 
@@ -431,7 +517,7 @@ function generarReporte(){
     <div class="confirm-box">
       <div>
         <p>✓ Reporte generado correctamente</p>
-        <span>${allFound.length} nota(s) exportadas. Revisa tu carpeta de descargas.</span>
+        <span>${notas.length} nota(s) exportadas. Revisa tu carpeta de descargas.</span>
       </div>
       <button class="btn-sec" onclick="generarReporte()">Descargar de nuevo</button>
     </div>`;
