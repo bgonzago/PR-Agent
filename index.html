@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agente de Clipping — NTT DATA Perú</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f9f8f6; --surface: #ffffff; --border: #e5e3de;
+      --border-strong: #ccc9c2; --text: #1a1916; --text-sec: #6b6860;
+      --text-ter: #9c9a95; --accent: #1a1916; --accent-fg: #ffffff;
+      --green-bg: #eaf5ee; --green-text: #1a5c30;
+      --blue-bg: #e8f0fb; --blue-text: #1a3a6b;
+      --gray-bg: #f1f0ec; --gray-text: #5a5850;
+      --red-bg: #fbeaea; --red-text: #6b1a1a;
+      --purple-bg: #f0eefb; --purple-text: #3a2a6b;
+      --amber-bg: #fdf4e3; --amber-text: #6b4a10;
+      --yellow-bg: #fffde7;
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
+    .container { max-width: 920px; margin: 0 auto; }
+    header { margin-bottom: 2rem; }
+    header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
+    header p { font-size: 13px; color: var(--text-sec); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.5rem; margin-bottom: 1rem; }
+    .field-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-sec); margin-bottom: 8px; }
+    textarea { width: 100%; min-height: 80px; resize: vertical; font-size: 14px; font-family: 'DM Sans', sans-serif; border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 12px; color: var(--text); background: var(--bg); transition: border-color .15s; }
+    textarea:focus { outline: none; border-color: var(--border-strong); }
+    .scope-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); align-items: center; }
+    .scope-label { font-size: 12px; font-weight: 500; color: var(--text-sec); }
+    .scope-chip { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--text-sec); cursor: pointer; user-select: none; }
+    .scope-chip input { cursor: pointer; accent-color: var(--accent); }
+    .controls { display: flex; align-items: center; gap: 10px; margin-top: 1rem; flex-wrap: wrap; }
+    .btn-primary { background: var(--accent); color: var(--accent-fg); border: none; border-radius: var(--r-md); padding: 9px 20px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity .15s; }
+    .btn-primary:hover { opacity: .82; }
+    .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-sec { background: transparent; border: 1px solid var(--border-strong); border-radius: var(--r-md); padding: 9px 16px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); cursor: pointer; transition: background .15s; }
+    .btn-sec:hover { background: var(--bg); }
+    .toggle-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-sec); cursor: pointer; margin-left: auto; }
+    .toggle-label input { cursor: pointer; accent-color: var(--accent); }
+    .media-panel { background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); padding: 1rem; margin-bottom: 1rem; display: none; }
+    .media-panel.open { display: block; }
+    .media-panel-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .media-panel-hdr span { font-size: 13px; color: var(--text-sec); }
+    .btn-xs { background: transparent; border: 1px solid var(--border-strong); border-radius: var(--r-sm); padding: 3px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif; color: var(--text); cursor: pointer; }
+    .btn-xs:hover { background: var(--surface); }
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 7px; }
+    .media-item { display: flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; user-select: none; }
+    .media-item input { cursor: pointer; accent-color: var(--accent); flex-shrink: 0; }
+    .status { font-size: 13px; color: var(--text-sec); min-height: 22px; margin-bottom: 12px; }
+    .prog { color: #185FA5; font-weight: 500; }
+    .results-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .results-hdr h2 { font-size: 15px; font-weight: 600; }
+    .badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+    .b-web { background: var(--green-bg); color: var(--green-text); }
+    .b-social { background: var(--blue-bg); color: var(--blue-text); }
+    .b-miss { background: var(--gray-bg); color: var(--gray-text); }
+    .table-wrap { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--bg); }
+    th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-ter); padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    td { font-size: 13px; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; word-break: break-word; }
+    tr:last-child td { border-bottom: none; }
+    tr.found:hover td { background: var(--bg); }
+    td a { color: #185FA5; text-decoration: none; }
+    td a:hover { text-decoration: underline; }
+    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+    .dot-web { background: #1D9E75; }
+    .dot-social { background: #378ADD; }
+    .dot-miss { background: #B4B2A9; }
+    .src-tag { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+    .src-web { background: var(--green-bg); color: var(--green-text); }
+    .src-x { background: var(--gray-bg); color: #333; }
+    .src-li { background: var(--blue-bg); color: var(--blue-text); }
+    .src-fb { background: var(--purple-bg); color: var(--purple-text); }
+    .src-ig { background: var(--red-bg); color: var(--red-text); }
+    .src-yt { background: var(--amber-bg); color: var(--amber-text); }
+    .missing-section { margin-top: 1.5rem; }
+    .missing-section h3 { font-size: 13px; font-weight: 500; color: var(--text-sec); margin-bottom: 10px; }
+    .missing-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+    .missing-tag { font-size: 12px; color: var(--text-sec); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 3px 11px; }
+    .export-row { display: flex; gap: 8px; margin-top: 1.25rem; }
+    .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--accent-fg); border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 600px) { th, td { padding: 8px; font-size: 12px; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Agente de Clipping — NTT DATA Perú</h1>
+    <p>Busca notas de prensa en web y redes sociales (vía Google) · <strong id="total-label">41 medios</strong></p>
+  </header>
+
+  <div class="card">
+    <label class="field-label" for="query">Tema, evento o nota de prensa</label>
+    <textarea id="query" placeholder="Ej: NTT DATA reúne a más de 1,500 líderes en el Digital & AI Summit Lima 2026 para abordar el impacto de la inteligencia artificial en los negocios"></textarea>
+    <div class="scope-row">
+      <span class="scope-label">Buscar en:</span>
+      <label class="scope-chip"><input type="checkbox" id="sc-web" checked> Web</label>
+      <label class="scope-chip"><input type="checkbox" id="sc-x" checked> X</label>
+      <label class="scope-chip"><input type="checkbox" id="sc-li" checked> LinkedIn</label>
+      <label class="scope-chip"><input type="checkbox" id="sc-fb" checked> Facebook</label>
+      <label class="scope-chip"><input type="checkbox" id="sc-ig" checked> Instagram</label>
+      <label class="scope-chip"><input type="checkbox" id="sc-yt" checked> YouTube</label>
+    </div>
+    <div class="controls">
+      <button class="btn-primary" id="btn-search" onclick="startSearch()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Buscar en medios
+      </button>
+      <button class="btn-sec" onclick="clearAll()">Limpiar</button>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-media" onchange="toggleMediaPanel()"> Ver / editar medios
+      </label>
+    </div>
+  </div>
+
+  <div class="media-panel" id="media-panel">
+    <div class="media-panel-hdr">
+      <span id="media-count">41 medios seleccionados</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-xs" onclick="selectAll()">Todos</button>
+        <button class="btn-xs" onclick="selectNone()">Ninguno</button>
+      </div>
+    </div>
+    <div class="media-grid" id="media-grid"></div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div id="results-area"></div>
+</div>
+
+<script>
+const MEDIOS = [
+  {name:"Agencia Andina",       domain:"andina.pe"},
+  {name:"Agencia Órbita",       domain:"agenciaorbita.com"},
+  {name:"América Economía",     domain:"americaeconomia.com"},
+  {name:"América Sistemas",     domain:"americasistemas.pe"},
+  {name:"Business Empresarial", domain:"businessempresarial.com.pe"},
+  {name:"C-Empresarial",        domain:"ccreativa.com"},
+  {name:"Canal TI",             domain:"canalti.pe"},
+  {name:"Channel News Perú",    domain:"channelnewsperu.com"},
+  {name:"Ciudad.pe",            domain:"ciudad.pe"},
+  {name:"Common Digital",       domain:"commondigital.pe"},
+  {name:"Comunicación A1",      domain:"comunicaciona1.com"},
+  {name:"Comunidaria",          domain:"comunidaria.com"},
+  {name:"CSTIC",                domain:"blog.cstictv.com"},
+  {name:"CTO Perú",             domain:"ctoperu.com"},
+  {name:"Diario Correo",        domain:"diariocorreo.pe"},
+  {name:"Diario Gestión",       domain:"gestion.pe"},
+  {name:"Ecos Digitales",       domain:"ecosdigitales.pe"},
+  {name:"Enterados.pe",         domain:"enterados.pe"},
+  {name:"Expreso",              domain:"expreso.com.pe"},
+  {name:"Forbes Perú",          domain:"forbes.pe"},
+  {name:"Infobae Perú",         domain:"infobae.com"},
+  {name:"Informe Actual",       domain:"informeactual.com"},
+  {name:"IT/Users",             domain:"itusers.com"},
+  {name:"JC Magazine",          domain:"jcmagazine.com"},
+  {name:"Logística 360",        domain:"logistica360.pe"},
+  {name:"Minería y Energía",    domain:"mineriaenergia.com"},
+  {name:"Nteve",                domain:"nteve.pe"},
+  {name:"Perú Retail",          domain:"peru-retail.com"},
+  {name:"Press Perú",           domain:"pressperu.com"},
+  {name:"Revista Economía",     domain:"revistaeconomia.com"},
+  {name:"Revista Proactivo",    domain:"proactivo.com.pe"},
+  {name:"RPP",                  domain:"rpp.pe"},
+  {name:"Rumbo Económico",      domain:"rumbeconomico.pe"},
+  {name:"Rumbo Minero",         domain:"rumbominero.com"},
+  {name:"Salomón Periodistas",  domain:"salomon.pe"},
+  {name:"Semana Económica",     domain:"semanaeconomica.com"},
+  {name:"Sobre Ruedas",         domain:"sobreruedas.pe"},
+  {name:"Stakeholders",         domain:"stakeholders.com.pe"},
+  {name:"Tecnología 21",        domain:"tecnologia21.pe"},
+  {name:"Zoom Empresarial",     domain:"zoomempresarial.pe"},
+  {name:"Comunidaria",          domain:"comunidaria.com"}
+].filter((m,i,arr)=>arr.findIndex(x=>x.domain===m.domain)===i);
+
+let selected = new Set(MEDIOS.map(m=>m.domain));
+let results = [];
+let running = false;
+
+function buildGrid(){
+  document.getElementById('media-grid').innerHTML = MEDIOS.map(m=>`
+    <label class="media-item">
+      <input type="checkbox" value="${m.domain}" checked onchange="updateSel(this)">
+      ${m.name}
+    </label>`).join('');
+  updateCount();
+}
+
+function updateSel(cb){ cb.checked ? selected.add(cb.value) : selected.delete(cb.value); updateCount(); }
+function updateCount(){ document.getElementById('media-count').textContent = selected.size+' medios seleccionados'; }
+function selectAll(){ document.querySelectorAll('#media-grid input').forEach(cb=>{cb.checked=true;selected.add(cb.value);}); updateCount(); }
+function selectNone(){ document.querySelectorAll('#media-grid input').forEach(cb=>{cb.checked=false;selected.delete(cb.value);}); updateCount(); }
+function toggleMediaPanel(){ document.getElementById('media-panel').classList.toggle('open', document.getElementById('toggle-media').checked); }
+function setStatus(html){ document.getElementById('status').innerHTML = html; }
+function clearAll(){ document.getElementById('query').value=''; document.getElementById('status').innerHTML=''; document.getElementById('results-area').innerHTML=''; results=[]; }
+
+function getScopeFlags(){
+  return {
+    web: document.getElementById('sc-web').checked,
+    x:   document.getElementById('sc-x').checked,
+    li:  document.getElementById('sc-li').checked,
+    fb:  document.getElementById('sc-fb').checked,
+    ig:  document.getElementById('sc-ig').checked,
+    yt:  document.getElementById('sc-yt').checked
+  };
+}
+
+async function startSearch(){
+  const query = document.getElementById('query').value.trim();
+  if(!query){ setStatus('Escribe un tema o evento antes de buscar.'); return; }
+  if(selected.size===0){ setStatus('Selecciona al menos un medio.'); return; }
+  if(running) return;
+
+  running=true; results=[];
+  document.getElementById('btn-search').disabled=true;
+  document.getElementById('results-area').innerHTML='';
+
+  const scope = getScopeFlags();
+  const medios = MEDIOS.filter(m=>selected.has(m.domain));
+  const sociales = [
+    scope.x  && {label:'X',         site:'x.com'},
+    scope.li && {label:'LinkedIn',  site:'linkedin.com'},
+    scope.fb && {label:'Facebook',  site:'facebook.com'},
+    scope.ig && {label:'Instagram', site:'instagram.com'},
+    scope.yt && {label:'YouTube',   site:'youtube.com'}
+  ].filter(Boolean);
+
+  setStatus(`<span class="prog"><span class="spinner"></span> Consultando ${medios.length} medios${sociales.length?' + redes sociales':''}...</span>`);
+
+  const mediosList = medios.map(m=>`- ${m.name} (${m.domain})`).join('\n');
+  const socialInstr = sociales.length ? `\nAdemás busca en redes vía Google:\n${sociales.map(s=>`- ${s.label}: "[nombre del medio]" [keywords] site:${s.site}`).join('\n')}` : '';
+
+  const prompt = `Eres un asistente especializado en clipping de medios peruanos. Busca notas de prensa publicadas sobre este tema:
+
+TEMA: "${query}"
+
+MEDIOS A REVISAR:
+${mediosList}
+${scope.web ? `\nBÚSQUEDA WEB: Por cada medio usa múltiples queries variando keywords para capturar títulos propios distintos al oficial:\n- site:[dominio] [palabras clave principales]\n- site:[dominio] [nombre empresa o evento]\n- site:[dominio] [keywords alternativos]` : ''}
+${socialInstr}
+
+Responde SOLO con JSON válido, sin texto ni backticks adicionales:
+[
+  {
+    "medio": "Nombre del medio",
+    "dominio": "dominio.com",
+    "hallazgos": [
+      {
+        "fuente": "web|x|linkedin|facebook|instagram|youtube",
+        "encontrado": true,
+        "titulo": "Título exacto o null",
+        "url": "URL completa o null",
+        "fecha": "DD/MM/YYYY o null"
+      }
+    ]
+  }
+]
+
+Reglas:
+- Un objeto por cada medio de la lista
+- En hallazgos, una entrada por cada fuente donde encontraste algo
+- Si no encontraste nada, un solo hallazgo con encontrado:false
+- Solo marca encontrado:true si puedes confirmar con URL real
+- Sé honesto: si no puedes confirmar, marca encontrado:false`;
+
+  try {
+    const resp = await fetch('/api/search', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt})
+    });
+    const data = await resp.json();
+    const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    try {
+      const clean = text.replace(/```json|```/g,'').trim();
+      const match = clean.match(/\[[\s\S]*\]/);
+      if(match) results = JSON.parse(match[0]);
+    } catch(e) {
+      setStatus('Error al procesar la respuesta. Intenta nuevamente.');
+      running=false; document.getElementById('btn-search').disabled=false;
+      return;
+    }
+    renderResults(query);
+  } catch(e) {
+    setStatus('Error de conexión: ' + e.message);
+  }
+  running=false;
+  document.getElementById('btn-search').disabled=false;
+}
+
+function srcTag(f){
+  const map={web:'src-web',x:'src-x',linkedin:'src-li',facebook:'src-fb',instagram:'src-ig',youtube:'src-yt'};
+  const lbl={web:'Web',x:'X',linkedin:'LinkedIn',facebook:'Facebook',instagram:'Instagram',youtube:'YouTube'};
+  return `<span class="src-tag ${map[f]||'src-web'}">${lbl[f]||f}</span>`;
+}
+
+function renderResults(query){
+  const allFound=[], notFound=[];
+  results.forEach(r=>{
+    const hits=(r.hallazgos||[]).filter(h=>h.encontrado);
+    if(hits.length) hits.forEach(h=>allFound.push({medio:r.medio,...h}));
+    else notFound.push(r);
+  });
+  const webN=allFound.filter(h=>h.fuente==='web').length;
+  const socN=allFound.filter(h=>h.fuente!=='web').length;
+  const tit=query.length>70?query.substring(0,70)+'…':query;
+
+  setStatus(`Búsqueda completada — <strong>${allFound.length}</strong> notas encontradas en <strong>${results.length}</strong> medios consultados.`);
+
+  let html=`<div class="results-hdr">
+    <h2>${tit}</h2>
+    <div class="badges">
+      ${webN?`<span class="badge b-web"><span class="dot dot-web"></span>${webN} web</span>`:''}
+      ${socN?`<span class="badge b-social"><span class="dot dot-social"></span>${socN} redes</span>`:''}
+      <span class="badge b-miss"><span class="dot dot-miss"></span>${notFound.length} sin nota</span>
+    </div>
+  </div>`;
+
+  if(allFound.length){
+    html+=`<div class="table-wrap"><table><thead><tr>
+      <th style="width:18%">Medio</th><th style="width:12%">Fuente</th>
+      <th style="width:38%">Título</th><th style="width:20%">URL</th><th style="width:12%">Fecha</th>
+    </tr></thead><tbody>`;
+    allFound.forEach(h=>{
+      html+=`<tr class="found">
+        <td style="font-weight:500;">${h.medio}</td>
+        <td>${srcTag(h.fuente)}</td>
+        <td style="color:#6b6860;">${h.titulo||'—'}</td>
+        <td>${h.url?`<a href="${h.url}" target="_blank" rel="noopener">↗ Ver</a>`:'—'}</td>
+        <td style="color:#9c9a95;white-space:nowrap;">${h.fecha||'—'}</td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  }
+
+  if(notFound.length){
+    html+=`<div class="missing-section"><h3>Sin nota encontrada en:</h3>
+      <div class="missing-tags">${notFound.map(r=>`<span class="missing-tag">${r.medio}</span>`).join('')}</div>
+    </div>`;
+  }
+
+  if(allFound.length){
+    html+=`<div class="export-row">
+      <button class="btn-sec" onclick="exportCSV()" style="font-size:13px;">⬇ Exportar CSV</button>
+      <button class="btn-sec" onclick="copyReport()" id="btn-copy" style="font-size:13px;">⎘ Copiar reporte</button>
+    </div>`;
+  }
+  document.getElementById('results-area').innerHTML=html;
+}
+
+function exportCSV(){
+  const rows=[['Medio','Fuente','Título','URL','Fecha']];
+  results.forEach(r=>(r.hallazgos||[]).filter(h=>h.encontrado).forEach(h=>
+    rows.push([r.medio,h.fuente,h.titulo||'',h.url||'',h.fecha||''])
+  ));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='clipping_prensa.csv'; a.click();
+}
+
+function copyReport(){
+  const allFound=[], notFound=[];
+  results.forEach(r=>{
+    const hits=(r.hallazgos||[]).filter(h=>h.encontrado);
+    if(hits.length) hits.forEach(h=>allFound.push({medio:r.medio,...h}));
+    else notFound.push(r);
+  });
+  let txt=`CLIPPING DIGITAL — NTT DATA PERÚ\nNotas encontradas: ${allFound.length}\n\n`;
+  allFound.forEach((h,i)=>{ txt+=`${i+1}. ${h.medio} [${h.fuente.toUpperCase()}]\n   Título: ${h.titulo||'—'}\n   URL: ${h.url||'—'}\n   Fecha: ${h.fecha||'—'}\n\n`; });
+  if(notFound.length) txt+=`Sin nota encontrada:\n${notFound.map(r=>`- ${r.medio}`).join('\n')}`;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.getElementById('btn-copy');
+    btn.textContent='✓ Copiado';
+    setTimeout(()=>btn.textContent='⎘ Copiar reporte',2000);
+  });
+}
+
+buildGrid();
+</script>
+</body>
+</html>
