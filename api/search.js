@@ -16,6 +16,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'web-search-2025-03-05',
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
@@ -24,6 +25,12 @@ export default async function handler(req, res) {
         messages: [{ role: 'user', content: prompt }],
       }),
     });
+
+    if (!response.ok) {
+      const err = await response.text();
+      return res.status(response.status).json({ error: err });
+    }
+
     const data = await response.json();
     res.status(200).json(data);
   } catch (error) {
