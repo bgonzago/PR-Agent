@@ -74,11 +74,11 @@
     .dot-web { background: #1D9E75; }
     .dot-miss { background: #B4B2A9; }
     .src-tag { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 20px; white-space: nowrap; background: var(--green-bg); color: var(--green-text); }
+    .src-tag.social { background: var(--blue-bg); color: var(--blue-text); }
     .missing-section { margin-top: 1.5rem; }
     .missing-section h3 { font-size: 13px; font-weight: 500; color: var(--text-sec); margin-bottom: 10px; }
     .missing-tags { display: flex; flex-wrap: wrap; gap: 7px; }
     .missing-tag { font-size: 12px; color: var(--text-sec); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 3px 11px; }
-    .export-row { display: flex; gap: 8px; margin-top: 1.25rem; flex-wrap: wrap; }
     .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--accent-fg); border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -92,13 +92,14 @@
       <p>Busca notas de prensa en web y redes sociales (vía Google) · <strong>18 medios prioritarios</strong></p>
     </div>
   </header>
-  
+
   <div class="card">
     <label class="field-label" for="query">Tema, evento o nota de prensa</label>
     <textarea id="query" placeholder="Ej: NTT DATA reúne a más de 1,500 líderes en el Digital & AI Summit Lima 2026..."></textarea>
     <div class="scope-row">
       <span class="scope-label">Buscar en:</span>
-      <label class="scope-chip"><input type="checkbox" id="sc-web" checked> Web</label>
+      <label class="scope-chip"><input type="checkbox" id="sc-web" checked> Web directa</label>
+      <label class="scope-chip"><input type="checkbox" id="sc-google" checked> Google</label>
       <label class="scope-chip"><input type="checkbox" id="sc-x" checked> X</label>
       <label class="scope-chip"><input type="checkbox" id="sc-li" checked> LinkedIn</label>
       <label class="scope-chip"><input type="checkbox" id="sc-fb" checked> Facebook</label>
@@ -135,24 +136,24 @@
 
 <script>
 const MEDIOS = [
-  {name:"América Sistemas",     domain:"americasistemas.pe",         tier:3, value:1200, reach:50000},
-  {name:"Business Empresarial", domain:"businessempresarial.com.pe", tier:1, value:2400, reach:80000},
-  {name:"Channel News Perú",    domain:"channelnewsperu.com",        tier:2, value:2200, reach:60000},
-  {name:"Ciudad.pe",            domain:"ciudad.pe",                  tier:3, value:1200, reach:10000},
-  {name:"Common Digital",       domain:"commondigital.pe",           tier:3, value:1200, reach:10000},
-  {name:"Comunicación A1",      domain:"comunicaciona1.com",         tier:3, value:600,  reach:8000},
-  {name:"Comunidaria",          domain:"comunidaria.com",            tier:2, value:600,  reach:8000},
-  {name:"CSTIC",                domain:"blog.cstictv.com",           tier:3, value:1200, reach:15000},
-  {name:"CTO Perú",             domain:"ctoperu.com",                tier:1, value:3500, reach:75000},
-  {name:"Diario Gestión",       domain:"gestion.pe",                 tier:1, value:5310, reach:66000},
-  {name:"Ecos Digitales",       domain:"ecosdigitales.pe",           tier:2, value:1000, reach:10000},
-  {name:"Enterados.pe",         domain:"enterados.pe",               tier:2, value:1000, reach:20000},
-  {name:"Expreso",              domain:"expreso.com.pe",             tier:1, value:3500, reach:80000},
-  {name:"JC Magazine",          domain:"jcmagazine.com",             tier:3, value:1800, reach:5000},
-  {name:"Minería y Energía",    domain:"mineriaenergia.com",         tier:1, value:6000, reach:120000},
-  {name:"Press Perú",           domain:"pressperu.com",              tier:2, value:1000, reach:15000},
-  {name:"Revista Economía",     domain:"revistaeconomia.com",        tier:2, value:1500, reach:20000},
-  {name:"Tecnología 21",        domain:"tecnologia21.pe",            tier:1, value:2200, reach:75000},
+  {name:"América Sistemas",     domain:"americasistemas.pe",         tier:3, value:1200, reach:50000,  searchUrl:"https://www.americasistemas.pe/?s={keyword}"},
+  {name:"Business Empresarial", domain:"businessempresarial.com.pe", tier:1, value:2400, reach:80000,  searchUrl:"https://www.businessempresarial.com.pe/?s={keyword}"},
+  {name:"Channel News Perú",    domain:"channelnewsperu.com",        tier:2, value:2200, reach:60000,  searchUrl:"https://channelnewsperu.com/?s={keyword}"},
+  {name:"Ciudad.pe",            domain:"ciudad.pe",                  tier:3, value:1200, reach:10000,  searchUrl:"https://ciudad.pe/?s={keyword}"},
+  {name:"Common Digital",       domain:"commondigital.pe",           tier:3, value:1200, reach:10000,  searchUrl:"https://commondigital.pe/?s={keyword}"},
+  {name:"Comunicación A1",      domain:"comunicaciona1.com",         tier:3, value:600,  reach:8000,   searchUrl:"https://comunicaciona1.com/?s={keyword}"},
+  {name:"Comunidaria",          domain:"comunidaria.com",            tier:2, value:600,  reach:8000,   searchUrl:"https://comunidaria.com/?s={keyword}"},
+  {name:"CSTIC",                domain:"blog.cstictv.com",           tier:3, value:1200, reach:15000,  searchUrl:"https://blog.cstictv.com/?s={keyword}"},
+  {name:"CTO Perú",             domain:"ctoperu.com",                tier:1, value:3500, reach:75000,  searchUrl:"https://ctoperu.pe/?s={keyword}"},
+  {name:"Diario Gestión",       domain:"gestion.pe",                 tier:1, value:5310, reach:66000,  searchUrl:"https://gestion.pe/buscar/{keyword}/todas/descendiente/?query={keyword}"},
+  {name:"Ecos Digitales",       domain:"ecosdigitales.pe",           tier:2, value:1000, reach:10000,  searchUrl:"https://ecosdigitales.pe/?s={keyword}"},
+  {name:"Enterados.pe",         domain:"enterados.pe",               tier:2, value:1000, reach:20000,  searchUrl:"https://enterados.pe/?s={keyword}"},
+  {name:"Expreso",              domain:"expreso.com.pe",             tier:1, value:3500, reach:80000,  searchUrl:"https://www.expreso.com.pe/?s={keyword}"},
+  {name:"JC Magazine",          domain:"jcmagazine.com",             tier:3, value:1800, reach:5000,   searchUrl:"https://jcmagazine.com/?s={keyword}"},
+  {name:"Minería y Energía",    domain:"mineriaenergia.com",         tier:1, value:6000, reach:120000, searchUrl:"https://mineriaenergia.com/?s={keyword}"},
+  {name:"Press Perú",           domain:"pressperu.com",              tier:2, value:1000, reach:15000,  searchUrl:"https://pressperu.com/?s={keyword}"},
+  {name:"Revista Economía",     domain:"revistaeconomia.com",        tier:2, value:1500, reach:20000,  searchUrl:"https://revistaeconomia.com/?s={keyword}"},
+  {name:"Tecnología 21",        domain:"tecnologia21.pe",            tier:1, value:2200, reach:75000,  searchUrl:"https://t21.pe/?s={keyword}"},
 ];
 
 const MEDIO_REF = {};
@@ -187,16 +188,26 @@ function clearAll(){
 
 function getScopeFlags(){
   return {
-    web: document.getElementById('sc-web').checked,
-    x:   document.getElementById('sc-x').checked,
-    li:  document.getElementById('sc-li').checked,
-    fb:  document.getElementById('sc-fb').checked,
-    ig:  document.getElementById('sc-ig').checked,
-    yt:  document.getElementById('sc-yt').checked
+    web:    document.getElementById('sc-web').checked,
+    google: document.getElementById('sc-google').checked,
+    x:      document.getElementById('sc-x').checked,
+    li:     document.getElementById('sc-li').checked,
+    fb:     document.getElementById('sc-fb').checked,
+    ig:     document.getElementById('sc-ig').checked,
+    yt:     document.getElementById('sc-yt').checked
   };
 }
 
+function extractKeyword(query){
+  const q = query.toLowerCase();
+  if(q.includes('summit')) return 'summit';
+  if(q.includes('blockchain') || q.includes('darshana')) return 'darshana';
+  if(q.includes('talent') || q.includes('trujillo')) return 'talent';
+  return 'ntt';
+}
+
 function buildPrompt(medios, query, scope){
+  const keyword = extractKeyword(query);
   const sociales = [
     scope.x  && {label:'X',        site:'x.com'},
     scope.li && {label:'LinkedIn', site:'linkedin.com'},
@@ -205,16 +216,26 @@ function buildPrompt(medios, query, scope){
     scope.yt && {label:'YouTube',  site:'youtube.com'}
   ].filter(Boolean);
 
-  const mediosList = medios.map(m=>`- ${m.name} (${m.domain})`).join('\n');
-  const socialInstr = sociales.length ? `\nAdemás busca publicaciones en redes sociales vía Google:\n${sociales.map(s=>`- ${s.label}: "[nombre del medio]" [keywords] site:${s.site}`).join('\n')}` : '';
+  const mediosList = medios.map(m => {
+    const searchUrl = scope.web ? m.searchUrl.replace(/{keyword}/g, keyword) : null;
+    return `- ${m.name} (${m.domain})${searchUrl ? ` → búsqueda directa: ${searchUrl}` : ''}`;
+  }).join('\n');
+
+  const googleInstr = scope.google ? `\nBÚSQUEDA EN GOOGLE: Para cada medio usa:\n- site:[dominio] [palabras clave principales]\n- site:[dominio] [nombre empresa o evento]\n- site:[dominio] [keywords alternativos]` : '';
+
+  const socialInstr = sociales.length ? `\nBÚSQUEDA EN REDES SOCIALES vía Google:\n${sociales.map(s=>`- ${s.label}: "[nombre del medio]" "${keyword}" site:${s.site}`).join('\n')}` : '';
+
+  const webInstr = scope.web ? `\nBÚSQUEDA DIRECTA EN WEB: Accede a las URLs de búsqueda directa indicadas para cada medio y revisa los resultados. Busca notas publicadas sobre el tema en el período reciente.` : '';
 
   return `Eres un asistente especializado en clipping de medios peruanos. Busca notas de prensa publicadas sobre este tema:
 
 TEMA: "${query}"
+KEYWORD DE BÚSQUEDA: "${keyword}"
 
 MEDIOS A REVISAR:
 ${mediosList}
-${scope.web ? `\nBÚSQUEDA WEB: Por cada medio usa múltiples queries para capturar títulos propios distintos al oficial:\n- site:[dominio] [palabras clave principales]\n- site:[dominio] [nombre empresa o evento]\n- site:[dominio] [keywords alternativos]` : ''}
+${webInstr}
+${googleInstr}
 ${socialInstr}
 
 Responde SOLO con JSON válido, sin texto ni backticks adicionales:
@@ -256,7 +277,7 @@ async function startSearch(){
   const scope = getScopeFlags();
   const medios = MEDIOS.filter(m=>selected.has(m.domain));
 
-  setStatus(`<span class="prog"><span class="spinner"></span> Consultando ${medios.length} medios...</span>`);
+  setStatus(`<span class="prog"><span class="spinner"></span> Consultando ${medios.length} medios (web directa + Google + redes)...</span>`);
 
   try {
     const resp = await fetch('/api/search', {
@@ -317,15 +338,16 @@ function renderResults(query){
     html+=`<div class="table-wrap"><table><thead><tr>
       <th style="width:18%">Medio</th>
       <th style="width:10%">Fuente</th>
-      <th style="width:38%">Título</th>
-      <th style="width:22%">URL</th>
+      <th style="width:36%">Título</th>
+      <th style="width:24%">URL</th>
       <th style="width:12%">Fecha</th>
     </tr></thead><tbody>`;
     allFound.forEach(h=>{
-      const fuenteLabel = h.fuente==='web' ? 'Web' : h.fuente.charAt(0).toUpperCase()+h.fuente.slice(1);
+      const isWeb = h.fuente==='web';
+      const fuenteLabel = isWeb ? 'Web' : h.fuente.charAt(0).toUpperCase()+h.fuente.slice(1);
       html+=`<tr class="found">
         <td style="font-weight:500;">${h.medio}</td>
-        <td><span class="src-tag">${fuenteLabel}</span></td>
+        <td><span class="src-tag${isWeb?'':' social'}">${fuenteLabel}</span></td>
         <td style="color:#6b6860;">${h.titulo||'—'}</td>
         <td>${h.url?`<a href="${h.url}" target="_blank" rel="noopener">↗ Ver</a>`:'—'}</td>
         <td style="color:#9c9a95;white-space:nowrap;">${h.fecha||'—'}</td>
